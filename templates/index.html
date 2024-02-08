@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <p>Hello, {{ name }}!</p>
+    {% if is_logged_in %}
+      <a href="/logout">Logout</a>
+    {% else %}
+      <a href="/login">Login</a>
+    {% endif %}
+    <div>
+      <button id="btn-info">Fetch info</button>
+    </div>
+
+    <script>
+      document.getElementById('btn-info').onclick = async () => {
+        const response = await fetch('/info');
+        const info = await response.json();
+        console.log('user info fetched', info);
+      }
+    </script>
+  </body>
+</html>

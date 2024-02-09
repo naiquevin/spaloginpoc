@@ -1,0 +1,7 @@
+users:
+  - default
+  - name: vmadmin
+    sudo:  ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - "{{ ssh_pub_key }}"

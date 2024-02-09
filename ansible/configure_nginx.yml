@@ -1,0 +1,10 @@
+---
+
+- name: Install and configure nginx
+  become: true
+  hosts: "{{ cli_hosts }}"
+  roles:
+    - role: nginxinc.nginx
+      nginx_static_modules:
+        - http_ssl_module
+        - http_auth_request_module

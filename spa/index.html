@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <p>Hello, user</p>
+    <div>
+      <button id="btn-info">Fetch info</button>
+    </div>
+    <script>
+      document.getElementById('btn-info').onclick = async () => {
+        const response = await fetch('/xhr/info');
+        const info = await response.json();
+        console.log('user info fetched', info);
+      }
+    </script>
+  </body>
+</html>

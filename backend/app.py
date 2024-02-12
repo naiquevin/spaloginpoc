@@ -33,3 +33,13 @@ def info():
         return {"info": user}, 200
     else:
         return {"err": "user not logged in"}, 401
+
+
+@app.route("/auth", methods=["GET"])
+def auth():
+    user = request.cookies.get("logged_in_user")
+    # print(user)
+    if user:
+        return "", 200
+    else:
+        return "", 401

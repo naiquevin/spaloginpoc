@@ -21,7 +21,7 @@ def login():
 
 @app.route("/logout", methods=["GET"])
 def logout():
-    resp = make_response(redirect("/", 302))
+    resp = make_response(redirect("/login", 302))
     resp.delete_cookie("logged_in_user")
     return resp
 

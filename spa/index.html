@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <p>Hello, user</p>
-    <div>
-      <button id="btn-info">Fetch info</button>
-    </div>
+    <p id="greeting"></p>
+    <p id="error"></p>
     <script>
-      document.getElementById('btn-info').onclick = async () => {
+      window.onload = async () => {
         const response = await fetch('/xhr/info');
-        const info = await response.json();
-        console.log('user info fetched', info);
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('greeting').innerHTML = `Hello, ${data.info}` + ' (<a href="/logout">logout</a>)';
+        } else if (response.status == 401) {
+          let errContainer = document.getElementById('error');
+          errContainer.innerHTML = 'Please <a href="/login">login</a>';
+        } else {
+          console.log(`An unexpected error occured ${response}`);
+        }
       }
     </script>
   </body>

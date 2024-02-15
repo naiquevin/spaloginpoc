@@ -4,11 +4,14 @@ use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
 use minijinja::{context, path_loader, Environment};
+use std::collections::HashMap;
 use tokio::net::TcpListener;
 
 #[derive(Clone)]
 pub struct AppState {
     pub tmpl_env: Environment<'static>,
+    // A mapping of usernames and their passwords
+    pub user_store: HashMap<&'static str, &'static str>
 }
 
 #[derive(Debug)]
@@ -38,7 +41,10 @@ async fn main() {
     let mut tmpl_env = Environment::new();
     tmpl_env.set_loader(path_loader("templates"));
 
-    let state = AppState { tmpl_env };
+    let mut user_store: HashMap<&'static str, &'static str> = HashMap::new();
+    user_store.insert("vineet", "s3cret");
+
+    let state = AppState { tmpl_env, user_store };
 
     let app = Router::new()
         .route("/login", get(login))

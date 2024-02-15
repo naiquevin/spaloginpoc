@@ -1,6 +1,7 @@
+use axum::body::Body;
 use axum::extract::State;
-use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse, Redirect, Response};
+use axum::http::{header, StatusCode};
+use axum::response::{Html, IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Form, Router};
 use minijinja::{context, path_loader, Environment};
@@ -55,7 +56,12 @@ async fn login_action(
     match state.user_store.get(form.username.as_str()) {
         Some(stored_password) => {
             if &form.password == stored_password {
-                (StatusCode::TEMPORARY_REDIRECT, Redirect::to("/")).into_response()
+                Response::builder()
+                    .status(StatusCode::TEMPORARY_REDIRECT)
+                    .header(header::SET_COOKIE, format!("user_id={}", form.username))
+                    .header(header::LOCATION, "/")
+                    .body(Body::empty())
+                    .unwrap()
             } else {
                 (StatusCode::UNAUTHORIZED, "Authentication failed").into_response()
             }

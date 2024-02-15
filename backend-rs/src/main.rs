@@ -1,5 +1,6 @@
 use axum::extract::State;
-use axum::response::Html;
+use axum::http::StatusCode;
+use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
 use minijinja::{context, path_loader, Environment};
@@ -10,10 +11,26 @@ pub struct AppState {
     pub tmpl_env: Environment<'static>,
 }
 
-async fn login(State(state): State<AppState>) -> Html<String> {
-    let tmpl = state.tmpl_env.get_template("login.html").unwrap();
+#[derive(Debug)]
+pub enum AppError {
+    Templating(minijinja::Error),
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, err_msg) = match self {
+            Self::Templating(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+        };
+        (status, err_msg.to_string()).into_response()
+    }
+}
+
+async fn login(State(state): State<AppState>) -> Result<Html<String>, AppError> {
+    let tmpl = state.tmpl_env.get_template("login.html")
+        .map_err(AppError::Templating)?;
     let ctx = context!();
-    Html(tmpl.render(ctx).unwrap())
+    let markup = tmpl.render(ctx).map_err(AppError::Templating)?;
+    Ok(Html(markup))
 }
 
 #[tokio::main]

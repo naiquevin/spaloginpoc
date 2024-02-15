@@ -1,9 +1,10 @@
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse, Response};
-use axum::routing::get;
-use axum::Router;
+use axum::response::{Html, IntoResponse, Redirect, Response};
+use axum::routing::{get, post};
+use axum::{Form, Router};
 use minijinja::{context, path_loader, Environment};
+use serde::Deserialize;
 use std::collections::HashMap;
 use tokio::net::TcpListener;
 
@@ -39,6 +40,30 @@ async fn login_page(State(state): State<AppState>) -> Result<Html<String>, AppEr
     Ok(Html(markup))
 }
 
+/* Handler for login action */
+
+#[derive(Deserialize)]
+struct LoginForm {
+    username: String,
+    password: String,
+}
+
+async fn login_action(
+    State(state): State<AppState>,
+    Form(form): Form<LoginForm>
+) -> Response {
+    match state.user_store.get(form.username.as_str()) {
+        Some(stored_password) => {
+            if &form.password == stored_password {
+                (StatusCode::TEMPORARY_REDIRECT, Redirect::to("/")).into_response()
+            } else {
+                (StatusCode::UNAUTHORIZED, "Authentication failed").into_response()
+            }
+        },
+        None => (StatusCode::UNAUTHORIZED, "Authentication failed").into_response()
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let mut tmpl_env = Environment::new();
@@ -51,6 +76,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/login", get(login_page))
+        .route("/login", post(login_action))
         .with_state(state);
 
     let addr = String::from("0.0.0.0:5001");

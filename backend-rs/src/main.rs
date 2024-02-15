@@ -1,7 +1,7 @@
 use axum::body::Body;
 use axum::extract::State;
 use axum::http::{header, StatusCode};
-use axum::response::{Html, IntoResponse, Response};
+use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, post};
 use axum::{Form, Router, Json};
 use cookie::Cookie;
@@ -109,6 +109,26 @@ async fn info(headers: header::HeaderMap) -> Response {
     }
 }
 
+/* Logout handler */
+
+async fn logout(headers: header::HeaderMap) -> Response {
+    let mut maybe_cookie = find_session_cookie(&headers);
+    match maybe_cookie.as_mut() {
+        Some(cookie) => {
+            cookie.make_removal();
+            Response::builder()
+                .status(StatusCode::TEMPORARY_REDIRECT)
+                .header(header::SET_COOKIE, cookie.to_string())
+                .header(header::LOCATION, "/login")
+                .body(Body::empty())
+                .unwrap()
+        },
+        None => {
+            Redirect::temporary("/login").into_response()
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let mut tmpl_env = Environment::new();
@@ -122,6 +142,7 @@ async fn main() {
     let app = Router::new()
         .route("/login", get(login_page))
         .route("/login", post(login_action))
+        .route("/logout", get(logout))
         .route("/info", get(info))
         .with_state(state);
 

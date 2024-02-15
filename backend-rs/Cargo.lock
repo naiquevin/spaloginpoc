@@ -110,6 +110,7 @@ dependencies = [
  "cookie",
  "minijinja",
  "serde",
+ "serde_json",
  "tokio",
 ]
 

@@ -3,10 +3,10 @@ use axum::extract::State;
 use axum::http::{header, StatusCode};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::{get, post};
-use axum::{Form, Router};
+use axum::{Form, Router, Json};
 use cookie::Cookie;
 use minijinja::{context, path_loader, Environment};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tokio::net::TcpListener;
 
@@ -73,6 +73,42 @@ async fn login_action(
     }
 }
 
+/* XHR handler for info */
+
+fn find_session_cookie<'a>(headers: &'a header::HeaderMap) -> Option<Cookie<'a>> {
+    // This code is based on a similar fn found in the axum-extra
+    // crate -
+    // https://github.com/tokio-rs/axum/blob/main/axum-extra/src/extract/cookie/mod.rs#L106
+    //
+    // As per RFC-7540 multiple "Cookie" headers are possible so we
+    // need to parse all of them (Ref:
+    // https://www.rfc-editor.org/rfc/rfc7540#section-8.1.2.5)
+    headers
+        .get_all(header::COOKIE)
+        .into_iter()
+        .filter_map(|value| value.to_str().ok())
+        .flat_map(|value| Cookie::split_parse(value))
+        .find(|c| c.as_ref().map_or(false, |v| v.name() == "session_id"))
+        .and_then(|c| c.ok())
+}
+
+#[derive(Serialize)]
+struct InfoResponse {
+    user: String,
+}
+
+async fn info(headers: header::HeaderMap) -> Response {
+    match find_session_cookie(&headers) {
+        Some(cookie) => {
+            let resp = InfoResponse { user: cookie.value().to_owned() };
+            Json(resp).into_response()
+        },
+        None => {
+            (StatusCode::UNAUTHORIZED, "Authentication failed").into_response()
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let mut tmpl_env = Environment::new();
@@ -86,6 +122,7 @@ async fn main() {
     let app = Router::new()
         .route("/login", get(login_page))
         .route("/login", post(login_action))
+        .route("/info", get(info))
         .with_state(state);
 
     let addr = String::from("0.0.0.0:5001");

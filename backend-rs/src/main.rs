@@ -28,7 +28,9 @@ impl IntoResponse for AppError {
     }
 }
 
-async fn login(State(state): State<AppState>) -> Result<Html<String>, AppError> {
+/* Handler for login page */
+
+async fn login_page(State(state): State<AppState>) -> Result<Html<String>, AppError> {
     let tmpl = state.tmpl_env.get_template("login.html")
         .map_err(AppError::Templating)?;
     let ctx = context!();
@@ -47,7 +49,7 @@ async fn main() {
     let state = AppState { tmpl_env, user_store };
 
     let app = Router::new()
-        .route("/login", get(login))
+        .route("/login", get(login_page))
         .with_state(state);
 
     let addr = String::from("0.0.0.0:5001");

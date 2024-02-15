@@ -7,15 +7,16 @@ use minijinja::{context, path_loader, Environment};
 use std::collections::HashMap;
 use tokio::net::TcpListener;
 
+#[allow(dead_code)]
 #[derive(Clone)]
-pub struct AppState {
-    pub tmpl_env: Environment<'static>,
+struct AppState {
+    tmpl_env: Environment<'static>,
     // A mapping of usernames and their passwords
-    pub user_store: HashMap<&'static str, &'static str>
+    user_store: HashMap<&'static str, &'static str>,
 }
 
 #[derive(Debug)]
-pub enum AppError {
+enum AppError {
     Templating(minijinja::Error),
 }
 

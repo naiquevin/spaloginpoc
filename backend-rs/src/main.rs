@@ -4,6 +4,7 @@ use axum::http::{header, StatusCode};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Form, Router};
+use cookie::Cookie;
 use minijinja::{context, path_loader, Environment};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -56,9 +57,11 @@ async fn login_action(
     match state.user_store.get(form.username.as_str()) {
         Some(stored_password) => {
             if &form.password == stored_password {
+                let cookie = Cookie::build(("session_id", form.username))
+                    .http_only(true);
                 Response::builder()
                     .status(StatusCode::TEMPORARY_REDIRECT)
-                    .header(header::SET_COOKIE, format!("user_id={}", form.username))
+                    .header(header::SET_COOKIE, cookie.to_string())
                     .header(header::LOCATION, "/")
                     .body(Body::empty())
                     .unwrap()

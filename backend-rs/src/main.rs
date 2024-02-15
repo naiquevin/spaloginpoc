@@ -3,7 +3,7 @@ use axum::extract::State;
 use axum::http::{header, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, post};
-use axum::{Form, Router, Json};
+use axum::{Form, Json, Router};
 use cookie::Cookie;
 use minijinja::{context, path_loader, Environment};
 use serde::{Deserialize, Serialize};
@@ -26,7 +26,7 @@ enum AppError {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, err_msg) = match self {
-            Self::Templating(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+            Self::Templating(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal server error"),
         };
         (status, err_msg.to_string()).into_response()
     }
@@ -35,7 +35,9 @@ impl IntoResponse for AppError {
 /* Handler for login page */
 
 async fn login_page(State(state): State<AppState>) -> Result<Html<String>, AppError> {
-    let tmpl = state.tmpl_env.get_template("login.html")
+    let tmpl = state
+        .tmpl_env
+        .get_template("login.html")
         .map_err(AppError::Templating)?;
     let ctx = context!();
     let markup = tmpl.render(ctx).map_err(AppError::Templating)?;
@@ -50,15 +52,11 @@ struct LoginForm {
     password: String,
 }
 
-async fn login_action(
-    State(state): State<AppState>,
-    Form(form): Form<LoginForm>
-) -> Response {
+async fn login_action(State(state): State<AppState>, Form(form): Form<LoginForm>) -> Response {
     match state.user_store.get(form.username.as_str()) {
         Some(stored_password) => {
             if &form.password == stored_password {
-                let cookie = Cookie::build(("session_id", form.username))
-                    .http_only(true);
+                let cookie = Cookie::build(("session_id", form.username)).http_only(true);
                 Response::builder()
                     .status(StatusCode::TEMPORARY_REDIRECT)
                     .header(header::SET_COOKIE, cookie.to_string())
@@ -68,8 +66,8 @@ async fn login_action(
             } else {
                 (StatusCode::UNAUTHORIZED, "Authentication failed").into_response()
             }
-        },
-        None => (StatusCode::UNAUTHORIZED, "Authentication failed").into_response()
+        }
+        None => (StatusCode::UNAUTHORIZED, "Authentication failed").into_response(),
     }
 }
 
@@ -100,12 +98,12 @@ struct InfoResponse {
 async fn info(headers: header::HeaderMap) -> Response {
     match find_session_cookie(&headers) {
         Some(cookie) => {
-            let resp = InfoResponse { user: cookie.value().to_owned() };
+            let resp = InfoResponse {
+                user: cookie.value().to_owned(),
+            };
             Json(resp).into_response()
-        },
-        None => {
-            (StatusCode::UNAUTHORIZED, "Authentication failed").into_response()
         }
+        None => (StatusCode::UNAUTHORIZED, "Authentication failed").into_response(),
     }
 }
 
@@ -122,10 +120,8 @@ async fn logout(headers: header::HeaderMap) -> Response {
                 .header(header::LOCATION, "/login")
                 .body(Body::empty())
                 .unwrap()
-        },
-        None => {
-            Redirect::temporary("/login").into_response()
         }
+        None => Redirect::temporary("/login").into_response(),
     }
 }
 
@@ -137,7 +133,10 @@ async fn main() {
     let mut user_store: HashMap<&'static str, &'static str> = HashMap::new();
     user_store.insert("vineet", "s3cret");
 
-    let state = AppState { tmpl_env, user_store };
+    let state = AppState {
+        tmpl_env,
+        user_store,
+    };
 
     let app = Router::new()
         .route("/login", get(login_page))

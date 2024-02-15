@@ -10,7 +10,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tokio::net::TcpListener;
 
-#[allow(dead_code)]
 #[derive(Clone)]
 struct AppState {
     tmpl_env: Environment<'static>,
@@ -73,7 +72,7 @@ async fn login_action(State(state): State<AppState>, Form(form): Form<LoginForm>
 
 /* XHR handler for info */
 
-fn find_session_cookie<'a>(headers: &'a header::HeaderMap) -> Option<Cookie<'a>> {
+fn find_session_cookie(headers: &header::HeaderMap) -> Option<Cookie> {
     // This code is based on a similar fn found in the axum-extra
     // crate -
     // https://github.com/tokio-rs/axum/blob/main/axum-extra/src/extract/cookie/mod.rs#L106
@@ -85,7 +84,7 @@ fn find_session_cookie<'a>(headers: &'a header::HeaderMap) -> Option<Cookie<'a>>
         .get_all(header::COOKIE)
         .into_iter()
         .filter_map(|value| value.to_str().ok())
-        .flat_map(|value| Cookie::split_parse(value))
+        .flat_map(Cookie::split_parse)
         .find(|c| c.as_ref().map_or(false, |v| v.name() == "session_id"))
         .and_then(|c| c.ok())
 }

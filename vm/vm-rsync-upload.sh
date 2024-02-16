@@ -4,6 +4,9 @@ set -e
 
 src=$1
 target=$2
+# Rest of the args to be sent to rsync
+shift 2
+rsync_args="$@"
 
 if [ -z "$src" ]; then
     echo First arg required
@@ -16,6 +19,6 @@ if [ -z "$target" ]; then
 fi
 
 rsync -e "ssh -i ~/.ssh/mpvm_user_key" \
-      -r \
+      $rsync_args \
       $src \
       vmadmin@$(multipass info nginx-spa | grep -i ipv4 | awk '{ print $2 }'):$target

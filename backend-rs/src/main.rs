@@ -57,7 +57,7 @@ async fn login_action(State(state): State<AppState>, Form(form): Form<LoginForm>
             if &form.password == stored_password {
                 let cookie = Cookie::build(("session_id", form.username)).http_only(true);
                 Response::builder()
-                    .status(StatusCode::TEMPORARY_REDIRECT)
+                    .status(StatusCode::FOUND)
                     .header(header::SET_COOKIE, cookie.to_string())
                     .header(header::LOCATION, "/")
                     .body(Body::empty())

@@ -124,6 +124,15 @@ async fn logout(headers: header::HeaderMap) -> Response {
     }
 }
 
+/* Auth handler (endpoint for nginx_auth_request_module) */
+
+async fn auth(headers: header::HeaderMap) -> StatusCode {
+    match find_session_cookie(&headers) {
+        Some(_) => StatusCode::OK,
+        None => StatusCode::UNAUTHORIZED
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let mut tmpl_env = Environment::new();
@@ -142,6 +151,7 @@ async fn main() {
         .route("/login", post(login_action))
         .route("/logout", get(logout))
         .route("/info", get(info))
+        .route("/auth", get(auth))
         .with_state(state);
 
     let addr = String::from("0.0.0.0:5001");

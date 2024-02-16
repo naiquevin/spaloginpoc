@@ -30,7 +30,7 @@ def logout():
 def info():
     user = request.cookies.get("logged_in_user")
     if user:
-        return {"info": user}, 200
+        return {"user": user}, 200
     else:
         return {"err": "user not logged in"}, 401
 

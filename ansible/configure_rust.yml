@@ -1,0 +1,9 @@
+---
+
+- name: Install rust tool chain
+  become: true
+  hosts: "{{ cli_hosts }}"
+  roles:
+    - role: zorlin.rustup
+      rustup_user: vmadmin
+      rustup_cargo_crates: []

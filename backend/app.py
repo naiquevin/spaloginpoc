@@ -13,7 +13,7 @@ def login():
         username = request.form.get("username")
         if username and username in USERS and request.form.get("password") == USERS[username]:
             resp = make_response(redirect("/", 302))
-            resp.set_cookie("logged_in_user", username)
+            resp.set_cookie("session_id", username)
             return resp
         else:
             return "Authentication failed", 401
@@ -22,13 +22,13 @@ def login():
 @app.route("/logout", methods=["GET"])
 def logout():
     resp = make_response(redirect("/login", 302))
-    resp.delete_cookie("logged_in_user")
+    resp.delete_cookie("session_id")
     return resp
 
 
 @app.route("/info", methods=["GET"])
 def info():
-    user = request.cookies.get("logged_in_user")
+    user = request.cookies.get("session_id")
     if user:
         return {"user": user}, 200
     else:
@@ -37,7 +37,8 @@ def info():
 
 @app.route("/auth", methods=["GET"])
 def auth():
-    user = request.cookies.get("logged_in_user")
+    user = request.cookies.get("session_id")
+    print(request.headers.get("X-Original-URI"))
     # print(user)
     if user:
         return "", 200

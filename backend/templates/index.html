@@ -13,7 +13,7 @@
 
     <script>
       document.getElementById('btn-info').onclick = async () => {
-        const response = await fetch('/info');
+        const response = await fetch('/xhr/info');
         const info = await response.json();
         console.log('user info fetched', info);
       }

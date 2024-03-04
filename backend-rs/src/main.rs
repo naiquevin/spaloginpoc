@@ -8,6 +8,7 @@ use cookie::Cookie;
 use minijinja::{context, path_loader, Environment};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use tracing::debug;
 use tokio::net::TcpListener;
 
 #[derive(Clone)]
@@ -34,6 +35,7 @@ impl IntoResponse for AppError {
 /* Handler for login page */
 
 async fn login_page(State(state): State<AppState>) -> Result<Html<String>, AppError> {
+    debug!("login page requested");
     let tmpl = state
         .tmpl_env
         .get_template("login.html")
@@ -52,6 +54,7 @@ struct LoginForm {
 }
 
 async fn login_action(State(state): State<AppState>, Form(form): Form<LoginForm>) -> Response {
+    debug!("login_action endpoint called");
     match state.user_store.get(form.username.as_str()) {
         Some(stored_password) => {
             if &form.password == stored_password {
@@ -95,6 +98,7 @@ struct InfoResponse {
 }
 
 async fn info(headers: header::HeaderMap) -> Response {
+    debug!("info requested");
     match find_session_cookie(&headers) {
         Some(cookie) => {
             let resp = InfoResponse {
@@ -109,6 +113,7 @@ async fn info(headers: header::HeaderMap) -> Response {
 /* Logout handler */
 
 async fn logout(headers: header::HeaderMap) -> Response {
+    debug!("logout endpoint called");
     let mut maybe_cookie = find_session_cookie(&headers);
     match maybe_cookie.as_mut() {
         Some(cookie) => {
@@ -127,6 +132,7 @@ async fn logout(headers: header::HeaderMap) -> Response {
 /* Auth handler (endpoint for nginx_auth_request_module) */
 
 async fn auth(headers: header::HeaderMap) -> StatusCode {
+    debug!("auth endpoint called");
     match find_session_cookie(&headers) {
         Some(_) => StatusCode::OK,
         None => StatusCode::UNAUTHORIZED
@@ -135,6 +141,8 @@ async fn auth(headers: header::HeaderMap) -> StatusCode {
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt::init();
+
     let mut tmpl_env = Environment::new();
     tmpl_env.set_loader(path_loader("templates"));
 

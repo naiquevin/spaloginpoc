@@ -132,7 +132,8 @@ async fn logout(headers: header::HeaderMap) -> Response {
 /* Auth handler (endpoint for nginx_auth_request_module) */
 
 async fn auth(headers: header::HeaderMap) -> StatusCode {
-    debug!("auth endpoint called");
+    let x_orig_uri = headers.get("X-Original-URI");
+    debug!("auth endpoint called for {x_orig_uri:?}");
     match find_session_cookie(&headers) {
         Some(_) => StatusCode::OK,
         None => StatusCode::UNAUTHORIZED

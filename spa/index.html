@@ -1,21 +1,13 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+  </head>
   <body>
-    <p id="greeting"></p>
-    <p id="error"></p>
-    <script>
-      window.onload = async () => {
-        const response = await fetch('/xhr/info');
-        if (response.ok) {
-          const data = await response.json();
-          document.getElementById('greeting').innerHTML = `Hello, ${data.user}` + ' (<a href="/logout">logout</a>)';
-        } else if (response.status == 401) {
-          let errContainer = document.getElementById('error');
-          errContainer.innerHTML = 'Please <a href="/login">login</a>';
-        } else {
-          console.log(`An unexpected error occured ${response}`);
-        }
-      }
-    </script>
+    <div class="container">
+      <p id="greeting"></p>
+      <p id="error"></p>
+    </div>
+    <script src="js/main.js"></script>
   </body>
 </html>
